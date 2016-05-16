@@ -11,6 +11,7 @@
 - [#6559](https://github.com/influxdata/influxdb/issues/6559): Teach the http service how to enforce connection limits.
 - [#6623](https://github.com/influxdata/influxdb/pull/6623): Speed up drop database
 - [#6519](https://github.com/influxdata/influxdb/issues/6519): Support cast syntax for selecting a specific type.
+- [#5655](https://github.com/influxdata/influxdb/issues/5655): Support specifying a retention policy for the graphite service.
 
 ### Bugfixes
 
