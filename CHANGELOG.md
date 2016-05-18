@@ -21,6 +21,7 @@
 - [#5906](https://github.com/influxdata/influxdb/issues/5906): Dynamically update the documentation link in the admin UI.
 - [#6686](https://github.com/influxdata/influxdb/pull/6686): Optimize timestamp run-length decoding
 - [#6713](https://github.com/influxdata/influxdb/pull/6713): Reduce allocations during query parsing.
+- [#4532](https://github.com/influxdata/influxdb/issues/4532): Support regex selection in SHOW TAG VALUES for the key.
 
 ### Bugfixes
 

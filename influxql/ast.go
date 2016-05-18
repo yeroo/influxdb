@@ -153,6 +153,7 @@ func (*nilLiteral) node()      {}
 func (*NumberLiteral) node()   {}
 func (*ParenExpr) node()       {}
 func (*RegexLiteral) node()    {}
+func (*SetLiteral) node()      {}
 func (*SortField) node()       {}
 func (SortFields) node()       {}
 func (Sources) node()          {}
@@ -268,6 +269,7 @@ func (*nilLiteral) expr()      {}
 func (*NumberLiteral) expr()   {}
 func (*ParenExpr) expr()       {}
 func (*RegexLiteral) expr()    {}
+func (*SetLiteral) expr()      {}
 func (*StringLiteral) expr()   {}
 func (*TimeLiteral) expr()     {}
 func (*VarRef) expr()          {}
@@ -285,6 +287,7 @@ func (*IntegerLiteral) literal()  {}
 func (*nilLiteral) literal()      {}
 func (*NumberLiteral) literal()   {}
 func (*RegexLiteral) literal()    {}
+func (*SetLiteral) literal()      {}
 func (*StringLiteral) literal()   {}
 func (*TimeLiteral) literal()     {}
 
@@ -2754,8 +2757,11 @@ type ShowTagValuesStatement struct {
 	// Data source that fields are extracted from.
 	Sources Sources
 
-	// Tag key(s) to pull values from.
-	TagKeys []string
+	// Operation to use when selecting tag key(s).
+	Op Token
+
+	// Literal to compare the tag key(s) with.
+	TagKeyExpr Literal
 
 	// An expression evaluated on data point.
 	Condition Expr
@@ -2780,14 +2786,10 @@ func (s *ShowTagValuesStatement) String() string {
 		_, _ = buf.WriteString(" FROM ")
 		_, _ = buf.WriteString(s.Sources.String())
 	}
-	_, _ = buf.WriteString(" WITH KEY IN (")
-	for idx, tagKey := range s.TagKeys {
-		if idx != 0 {
-			_, _ = buf.WriteString(", ")
-		}
-		_, _ = buf.WriteString(QuoteIdent(tagKey))
-	}
-	_, _ = buf.WriteString(")")
+	_, _ = buf.WriteString(" WITH KEY ")
+	_, _ = buf.WriteString(s.Op.String())
+	_, _ = buf.WriteString(" ")
+	_, _ = buf.WriteString(s.TagKeyExpr.String())
 	if s.Condition != nil {
 		_, _ = buf.WriteString(" WHERE ")
 		_, _ = buf.WriteString(s.Condition.String())
@@ -3230,6 +3232,25 @@ func isFalseLiteral(expr Expr) bool {
 		return expr.Val == false
 	}
 	return false
+}
+
+// SetLiteral represents a set literal.
+type SetLiteral struct {
+	Vals []string
+}
+
+// String returns a string representation of the literal.
+func (s *SetLiteral) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("(")
+	for idx, tagKey := range s.Vals {
+		if idx != 0 {
+			_, _ = buf.WriteString(", ")
+		}
+		_, _ = buf.WriteString(QuoteIdent(tagKey))
+	}
+	_, _ = buf.WriteString(")")
+	return buf.String()
 }
 
 // StringLiteral represents a string literal.

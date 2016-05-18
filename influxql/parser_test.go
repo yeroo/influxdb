@@ -1250,8 +1250,9 @@ func TestParser_ParseStatement(t *testing.T) {
 			skip: true,
 			s:    `SHOW TAG VALUES FROM src WITH KEY = region WHERE region = 'uswest' ORDER BY ASC, field1, field2 DESC LIMIT 10`,
 			stmt: &influxql.ShowTagValuesStatement{
-				Sources: []influxql.Source{&influxql.Measurement{Name: "src"}},
-				TagKeys: []string{"region"},
+				Sources:    []influxql.Source{&influxql.Measurement{Name: "src"}},
+				Op:         influxql.EQ,
+				TagKeyExpr: &influxql.StringLiteral{Val: "region"},
 				Condition: &influxql.BinaryExpr{
 					Op:  influxql.EQ,
 					LHS: &influxql.VarRef{Val: "region"},
@@ -1270,8 +1271,9 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `SHOW TAG VALUES FROM cpu WITH KEY IN (region, host) WHERE region = 'uswest'`,
 			stmt: &influxql.ShowTagValuesStatement{
-				Sources: []influxql.Source{&influxql.Measurement{Name: "cpu"}},
-				TagKeys: []string{"region", "host"},
+				Sources:    []influxql.Source{&influxql.Measurement{Name: "cpu"}},
+				Op:         influxql.IN,
+				TagKeyExpr: &influxql.SetLiteral{Vals: []string{"region", "host"}},
 				Condition: &influxql.BinaryExpr{
 					Op:  influxql.EQ,
 					LHS: &influxql.VarRef{Val: "region"},
@@ -1284,8 +1286,9 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `SHOW TAG VALUES FROM cpu WITH KEY IN (region,service,host)WHERE region = 'uswest'`,
 			stmt: &influxql.ShowTagValuesStatement{
-				Sources: []influxql.Source{&influxql.Measurement{Name: "cpu"}},
-				TagKeys: []string{"region", "service", "host"},
+				Sources:    []influxql.Source{&influxql.Measurement{Name: "cpu"}},
+				Op:         influxql.IN,
+				TagKeyExpr: &influxql.SetLiteral{Vals: []string{"region", "service", "host"}},
 				Condition: &influxql.BinaryExpr{
 					Op:  influxql.EQ,
 					LHS: &influxql.VarRef{Val: "region"},
@@ -1298,7 +1301,8 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `SHOW TAG VALUES WITH KEY = host WHERE region = 'uswest'`,
 			stmt: &influxql.ShowTagValuesStatement{
-				TagKeys: []string{"host"},
+				Op:         influxql.EQ,
+				TagKeyExpr: &influxql.StringLiteral{Val: "host"},
 				Condition: &influxql.BinaryExpr{
 					Op:  influxql.EQ,
 					LHS: &influxql.VarRef{Val: "region"},
@@ -1316,7 +1320,8 @@ func TestParser_ParseStatement(t *testing.T) {
 						Regex: &influxql.RegexLiteral{Val: regexp.MustCompile(`[cg]pu`)},
 					},
 				},
-				TagKeys: []string{"host"},
+				Op:         influxql.EQ,
+				TagKeyExpr: &influxql.StringLiteral{Val: "host"},
 			},
 		},
 
@@ -1324,12 +1329,22 @@ func TestParser_ParseStatement(t *testing.T) {
 		{
 			s: `SHOW TAG VALUES WITH KEY = "host" WHERE region = 'uswest'`,
 			stmt: &influxql.ShowTagValuesStatement{
-				TagKeys: []string{`host`},
+				Op:         influxql.EQ,
+				TagKeyExpr: &influxql.StringLiteral{Val: `host`},
 				Condition: &influxql.BinaryExpr{
 					Op:  influxql.EQ,
 					LHS: &influxql.VarRef{Val: "region"},
 					RHS: &influxql.StringLiteral{Val: "uswest"},
 				},
+			},
+		},
+
+		// SHOW TAG VALUES WITH KEY =~ /<regex>/
+		{
+			s: `SHOW TAG VALUES WITH KEY =~ /(host|region)/`,
+			stmt: &influxql.ShowTagValuesStatement{
+				Op:         influxql.EQREGEX,
+				TagKeyExpr: &influxql.RegexLiteral{Val: regexp.MustCompile(`(host|region)`)},
 			},
 		},
 
